@@ -83,6 +83,8 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+private.xml
+private.properties
 
 
 # IntelliJ project files 
