@@ -9,13 +9,15 @@ package lab4_inf3405;
  *
  * @author Simel
  */
-public class ServerService implements Runnable {
+public class Survey {
 
-    
-    
-    @Override
-    public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // TODO code application logic here
+        
+       
     }
     
 }

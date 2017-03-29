@@ -5,49 +5,151 @@
  */
 package lab4_inf3405;
 
+import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 
 /**
  *
  * @author Simel
  */
-public class Server extends javax.swing.JFrame {
+public class SurveyServer extends javax.swing.JFrame {
 
     private static ServerSocket server_;
     
-    private NumberFormat portFormat_;
-    private String ipFormat_;
-    private NumberFormat durationFormat_;
+    private static boolean surveyIsOpen_ = false;
+    private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
     
+    static int portNumber_;
+    static String ipAddress_;
+    static String duration_;
+    
+    private NumberFormat durationFormat_;
+    private static final String IP_ADDRESS_FORMAT = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                                                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                                                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                                                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"; 
     private Pattern pattern_;
     private Matcher matcher_;
+    
+    private List<javax.swing.JFormattedTextField> fieldList_ = new ArrayList<>();
+   
     /**
      * Creates new form Client
+     * Constructor
      */
-    public Server() {
+    public SurveyServer() {
+        setFieldFormat();
         initComponents();
-        SetFormats();
+        
+        fieldList_.add(ipFTextField_);
+        fieldList_.add(portNumFTextField_);
+        fieldList_.add(durationFTextField_);
+        
+        DocumentListener documentListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                checkFieldsFull();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                checkFieldsFull();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                 checkFieldsFull();
+            }
+        };
+        
+        // populate document listener for all fields
+        for(javax.swing.JFormattedTextField field : fieldList_)
+            field.getDocument().addDocumentListener(documentListener);
+        
+    }
+    
+    
+    /**
+     * Set field format
+     */
+    private void setFieldFormat() {
+        
+        durationFormat_ = NumberFormat.getNumberInstance();
     }
     
     /**
-     * Create and and set up number and IP format
+     * Validate port number input
      */
-    private void SetFormats() {
+    public void validatePortNumber() {
         
-        portFormat_ = NumberFormat.getNumberInstance();
-        
-        ipFormat_ = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
-                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"; // should actually be declared as static final
-        
-        durationFormat_ = NumberFormat.getInstance();
-     
+        try {
+                        
+             Object[] options = { "OK", "CANCEL" };
+                if ( Integer.parseInt(portNumFTextField_.getText().trim() ) < 10000 || Integer.parseInt(portNumFTextField_.getText().trim() ) > 10050) {
+                    JOptionPane.showOptionDialog(serverPanel_, "Port Nnumber Must Be Between 10000 and 10050", "Error",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);                    
+                    
+                    portNumFTextField_.setValue("");
+                }
+            }catch (NumberFormatException ex) {
+                
+                JOptionPane.showMessageDialog(serverPanel_, "Port Number Should Be An Integer", "Error", JOptionPane.ERROR_MESSAGE);
+                portNumFTextField_.setValue("");
+         
+         }
     }
-
+    
+    /**
+     * Check whether all the field has been filled
+     */
+    private void checkFieldsFull() {
+        
+        for(javax.swing.JFormattedTextField field : fieldList_) {
+            
+            if (field.getText().trim().isEmpty()) {
+                openSurveyButton_.setEnabled(false);
+                sendButton_.setEnabled(false);
+                closeSurveyButton_.setEnabled(false);
+                
+                return;
+            }
+        }
+        
+        openSurveyButton_.setEnabled(true);
+        sendButton_.setEnabled(true);
+        closeSurveyButton_.setEnabled(true);
+    }
+    /**
+     * Initializes accepted IP format
+     */
+    public void initializeAcceptedIPFormat() {
+         pattern_ = Pattern.compile(IP_ADDRESS_FORMAT);
+    }
+    
+    /**
+     * Validate IP address with regular expression
+     * @param ip IP address to validate
+     * @return true if IP is valid, false otherwise
+     */
+    public boolean validateIP(String ip) {
+        
+        matcher_ = pattern_.matcher(ip);
+        
+        return matcher_.matches();
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -70,7 +172,7 @@ public class Server extends javax.swing.JFrame {
         remOutputLabel_ = new javax.swing.JLabel();
         portNumFTextField_ = new javax.swing.JFormattedTextField();
         ipFTextField_ = new javax.swing.JFormattedTextField();
-        durationFTextField_ = new javax.swing.JFormattedTextField();
+        durationFTextField_ = new javax.swing.JFormattedTextField(durationFormat_);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -87,12 +189,25 @@ public class Server extends javax.swing.JFrame {
         durationLabel_.setText("Duration:");
 
         sendButton_.setText("SEND");
+        sendButton_.setEnabled(false);
 
         openSurveyButton_.setText("OPEN SURVEY");
+        openSurveyButton_.setEnabled(false);
+        openSurveyButton_.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openSurveyButton_ActionPerformed(evt);
+            }
+        });
 
         portNumLabel_.setText("Port Number:");
 
         closeSurveyButton_.setText("CLOSE SURVEY");
+        closeSurveyButton_.setEnabled(false);
+        closeSurveyButton_.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeSurveyButton_ActionPerformed(evt);
+            }
+        });
 
         remainingLabel_.setText("Remaining:");
 
@@ -100,14 +215,31 @@ public class Server extends javax.swing.JFrame {
         remOutputLabel_.setMinimumSize(new java.awt.Dimension(104, 24));
         remOutputLabel_.setPreferredSize(new java.awt.Dimension(104, 24));
 
+        portNumFTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         portNumFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         portNumFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+        portNumFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                portNumFTextField_FocusLost(evt);
+            }
+        });
 
         ipFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         ipFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+        ipFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                ipFTextField_FocusLost(evt);
+            }
+        });
 
+        durationFTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         durationFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         durationFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+        durationFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                durationFTextField_FocusLost(evt);
+            }
+        });
 
         javax.swing.GroupLayout serverPanel_Layout = new javax.swing.GroupLayout(serverPanel_);
         serverPanel_.setLayout(serverPanel_Layout);
@@ -195,9 +327,66 @@ public class Server extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     /**
-     * @param args the command line arguments
+     * 
+     * @param evt 
      */
-    public static void main(String args[]) {
+    private void portNumFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_portNumFTextField_FocusLost
+        
+        if( portNumFTextField_.getText().equals("") )
+            return;
+        
+        validatePortNumber();
+    }//GEN-LAST:event_portNumFTextField_FocusLost
+
+    private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
+        
+        if (ipFTextField_.getText().equals(""))
+            return;
+        
+        initializeAcceptedIPFormat();       
+        ipAddressOk_ = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
+        
+        if (!ipAddressOk_) {
+            
+            JOptionPane.showMessageDialog(serverPanel_, "Wrong IP Format", "Error", JOptionPane.ERROR_MESSAGE);
+            //ipFTextField_.setValue("");
+           
+        }
+        
+        
+    }//GEN-LAST:event_ipFTextField_FocusLost
+
+    private void durationFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_durationFTextField_FocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_durationFTextField_FocusLost
+
+    private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
+        
+        surveyIsOpen_= false;
+    }//GEN-LAST:event_closeSurveyButton_ActionPerformed
+
+    private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
+        
+        portNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
+        
+        try {
+           
+            server_ = new ServerSocket(portNumber_);
+            surveyIsOpen_ = true;
+            openSurveyButton_.setEnabled(false);
+        
+        } catch (IOException ex) {
+            Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_openSurveyButton_ActionPerformed
+    
+
+    
+    /**
+     * @param args the command line arguments
+     * @throws java.io.IOException
+     */
+    public static void main(String args[]) throws IOException {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -211,25 +400,43 @@ public class Server extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Server.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SurveyServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Server.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SurveyServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Server.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SurveyServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Server.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SurveyServer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Server().setVisible(true);
-            }
-        });
+        java.awt.EventQueue.invokeLater(() -> {
+            new SurveyServer().setVisible(true);
+        });        
         
-       //server_ = new ServerSocket()
+        
+        if (surveyIsOpen_) {
+            
+            Survey survey = new Survey();
+            
+            System.out.println("Waiting for clients to connect..."); // must acctually appear in the GUI output
+            
+            while (surveyIsOpen_) {
+                
+                try( Socket socket = server_.accept() ) {
+                    
+                    System.out.println("Client connected."); // must be shown in the GUI
+                    SurveyService service = new SurveyService(socket, survey);
+                    Thread t = new Thread(service);
+                    t.start();
+                    
+                } //catch (Exception e) {}               
+            }
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -241,11 +448,12 @@ public class Server extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private static javax.swing.JTextArea msgTextArea_;
     private javax.swing.JButton openSurveyButton_;
-    private javax.swing.JFormattedTextField portNumFTextField_;
+    private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JLabel portNumLabel_;
     private static javax.swing.JLabel remOutputLabel_;
     private javax.swing.JLabel remainingLabel_;
     private javax.swing.JButton sendButton_;
-    private javax.swing.JPanel serverPanel_;
+    private static javax.swing.JPanel serverPanel_;
     // End of variables declaration//GEN-END:variables
+
 }

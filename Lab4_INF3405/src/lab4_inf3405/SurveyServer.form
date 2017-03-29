@@ -42,6 +42,9 @@
         </Property>
         <Property name="name" type="java.lang.String" value="Server" noResource="true"/>
       </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -158,12 +161,17 @@
         <Component class="javax.swing.JButton" name="sendButton_">
           <Properties>
             <Property name="text" type="java.lang.String" value="SEND"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="openSurveyButton_">
           <Properties>
             <Property name="text" type="java.lang.String" value="OPEN SURVEY"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="openSurveyButton_ActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="portNumLabel_">
           <Properties>
@@ -173,7 +181,11 @@
         <Component class="javax.swing.JButton" name="closeSurveyButton_">
           <Properties>
             <Property name="text" type="java.lang.String" value="CLOSE SURVEY"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="closeSurveyButton_ActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="remainingLabel_">
           <Properties>
@@ -196,6 +208,7 @@
         </Component>
         <Component class="javax.swing.JFormattedTextField" name="portNumFTextField_">
           <Properties>
+            <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[104, 24]"/>
             </Property>
@@ -203,6 +216,12 @@
               <Dimension value="[104, 24]"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="portNumFTextField_FocusLost"/>
+          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+          </AuxValues>
         </Component>
         <Component class="javax.swing.JFormattedTextField" name="ipFTextField_">
           <Properties>
@@ -213,12 +232,16 @@
               <Dimension value="[104, 24]"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="ipFTextField_FocusLost"/>
+          </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
           </AuxValues>
         </Component>
         <Component class="javax.swing.JFormattedTextField" name="durationFTextField_">
           <Properties>
+            <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[104, 24]"/>
             </Property>
@@ -226,7 +249,11 @@
               <Dimension value="[104, 24]"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="durationFTextField_FocusLost"/>
+          </Events>
           <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JFormattedTextField(durationFormat_)"/>
             <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
           </AuxValues>
         </Component>
