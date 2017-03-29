@@ -28,21 +28,99 @@ public class Client extends javax.swing.JFrame {
     private void initComponents() {
 
         clientPanel_ = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        msgTextArea_ = new javax.swing.JTextArea();
+        ipLabel_ = new javax.swing.JLabel();
+        ipTextField_ = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        portNumTextField_ = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         clientPanel_.setBorder(javax.swing.BorderFactory.createTitledBorder("Client"));
 
+        msgTextArea_.setColumns(20);
+        msgTextArea_.setRows(5);
+        jScrollPane1.setViewportView(msgTextArea_);
+
+        ipLabel_.setText("Server IP Addr:");
+
+        ipTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        ipTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+
+        jLabel1.setText("Server Port # :");
+
+        portNumTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        portNumTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        portNumTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+
+        jButton1.setText("CONNECT");
+
+        jButton2.setText("SEND");
+
+        jButton3.setText("DISCONNECT");
+
         javax.swing.GroupLayout clientPanel_Layout = new javax.swing.GroupLayout(clientPanel_);
         clientPanel_.setLayout(clientPanel_Layout);
         clientPanel_Layout.setHorizontalGroup(
             clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 466, Short.MAX_VALUE)
+            .addGroup(clientPanel_Layout.createSequentialGroup()
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(clientPanel_Layout.createSequentialGroup()
+                        .addGap(26, 26, 26)
+                        .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(clientPanel_Layout.createSequentialGroup()
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(12, 12, 12)
+                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(clientPanel_Layout.createSequentialGroup()
+                                .addComponent(ipLabel_)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(ipTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(portNumTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(clientPanel_Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
+
+        clientPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {ipTextField_, portNumTextField_});
+
+        clientPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton3});
+
         clientPanel_Layout.setVerticalGroup(
             clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 299, Short.MAX_VALUE)
+            .addGroup(clientPanel_Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ipLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ipTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1)
+                    .addComponent(portNumTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButton3)
+                        .addComponent(jButton2))
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ipTextField_, portNumTextField_});
+
+        clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jButton1, jButton2, jButton3});
+
+        clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ipLabel_, jLabel1});
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -101,5 +179,14 @@ public class Client extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel clientPanel_;
+    private javax.swing.JLabel ipLabel_;
+    private javax.swing.JTextField ipTextField_;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea msgTextArea_;
+    private javax.swing.JTextField portNumTextField_;
     // End of variables declaration//GEN-END:variables
 }
