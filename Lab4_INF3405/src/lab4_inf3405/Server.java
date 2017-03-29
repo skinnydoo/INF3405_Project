@@ -5,17 +5,47 @@
  */
 package lab4_inf3405;
 
+import java.net.ServerSocket;
+import java.text.NumberFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  *
  * @author Simel
  */
 public class Server extends javax.swing.JFrame {
 
+    private static ServerSocket server_;
+    
+    private NumberFormat portFormat_;
+    private String ipFormat_;
+    private NumberFormat durationFormat_;
+    
+    private Pattern pattern_;
+    private Matcher matcher_;
     /**
      * Creates new form Client
      */
     public Server() {
         initComponents();
+        SetFormats();
+    }
+    
+    /**
+     * Create and and set up number and IP format
+     */
+    private void SetFormats() {
+        
+        portFormat_ = NumberFormat.getNumberInstance();
+        
+        ipFormat_ = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." + 
+                    "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"; // should actually be declared as static final
+        
+        durationFormat_ = NumberFormat.getInstance();
+     
     }
 
     /**
@@ -31,18 +61,16 @@ public class Server extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         msgTextArea_ = new javax.swing.JTextArea();
         ipLabel_ = new javax.swing.JLabel();
-        ipField_ = new javax.swing.JTextField();
-        portNumberLabel_ = new javax.swing.JLabel();
-        portNumberField_ = new javax.swing.JTextField();
-        timeRemainingLabel_ = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        durationTextField_ = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        durationLabel_ = new javax.swing.JLabel();
         sendButton_ = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JSeparator();
-        outputLabel_ = new javax.swing.JLabel();
+        openSurveyButton_ = new javax.swing.JButton();
+        portNumLabel_ = new javax.swing.JLabel();
+        closeSurveyButton_ = new javax.swing.JButton();
+        remainingLabel_ = new javax.swing.JLabel();
+        remOutputLabel_ = new javax.swing.JLabel();
+        portNumFTextField_ = new javax.swing.JFormattedTextField();
+        ipFTextField_ = new javax.swing.JFormattedTextField();
+        durationFTextField_ = new javax.swing.JFormattedTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -56,124 +84,111 @@ public class Server extends javax.swing.JFrame {
 
         ipLabel_.setText("IP Address:");
 
-        ipField_.setPreferredSize(new java.awt.Dimension(20, 24));
-
-        portNumberLabel_.setText("Port Number:");
-
-        portNumberField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-
-        timeRemainingLabel_.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        timeRemainingLabel_.setPreferredSize(new java.awt.Dimension(41, 24));
-
-        jLabel2.setText("Remaining:");
-
-        jLabel1.setText("Duration:");
+        durationLabel_.setText("Duration:");
 
         sendButton_.setText("SEND");
 
-        jButton1.setText("OPEN SURVEY");
+        openSurveyButton_.setText("OPEN SURVEY");
 
-        jButton2.setText("CLOSE SURVEY");
+        portNumLabel_.setText("Port Number:");
 
-        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        closeSurveyButton_.setText("CLOSE SURVEY");
 
-        outputLabel_.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        outputLabel_.setLabelFor(this);
-        outputLabel_.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        outputLabel_.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        remainingLabel_.setText("Remaining:");
+
+        remOutputLabel_.setText("jLabel4");
+        remOutputLabel_.setMinimumSize(new java.awt.Dimension(104, 24));
+        remOutputLabel_.setPreferredSize(new java.awt.Dimension(104, 24));
+
+        portNumFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        portNumFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+
+        ipFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        ipFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+
+        durationFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        durationFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
 
         javax.swing.GroupLayout serverPanel_Layout = new javax.swing.GroupLayout(serverPanel_);
         serverPanel_.setLayout(serverPanel_Layout);
         serverPanel_Layout.setHorizontalGroup(
             serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(serverPanel_Layout.createSequentialGroup()
-                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(22, 22, 22)
+                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(serverPanel_Layout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addComponent(jButton1)
+                        .addComponent(openSurveyButton_)
                         .addGap(18, 18, 18)
                         .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(5, 5, 5))
-                    .addGroup(serverPanel_Layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
-                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(serverPanel_Layout.createSequentialGroup()
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(durationTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(closeSurveyButton_))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
+                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(serverPanel_Layout.createSequentialGroup()
                                 .addComponent(ipLabel_)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(ipField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 34, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
+                                .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(serverPanel_Layout.createSequentialGroup()
+                                .addComponent(durationLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(durationFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(29, 29, 29)
                         .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
-                                .addComponent(portNumberLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(portNumberField_, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(timeRemainingLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(1, 1, 1))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(17, 17, 17)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(outputLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(remainingLabel_)
+                            .addComponent(portNumLabel_))
+                        .addGap(18, 18, 18)
+                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(remOutputLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(21, Short.MAX_VALUE))
         );
 
-        serverPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {durationTextField_, ipField_, portNumberField_, timeRemainingLabel_});
+        serverPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {closeSurveyButton_, openSurveyButton_});
 
         serverPanel_Layout.setVerticalGroup(
             serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(serverPanel_Layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(outputLabel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(serverPanel_Layout.createSequentialGroup()
+                        .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(26, 26, 26)
+                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ipLabel_))
+                        .addGap(20, 20, 20)
+                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(durationFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(durationLabel_)
+                            .addComponent(remainingLabel_)
+                            .addComponent(remOutputLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(closeSurveyButton_)
                             .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(ipField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(ipLabel_))
-                            .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(portNumberLabel_)
-                                .addComponent(portNumberField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(durationTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel1)
-                                .addComponent(jLabel2))
-                            .addComponent(timeRemainingLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
-                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(110, 110, 110))))
+                                .addComponent(openSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(serverPanel_Layout.createSequentialGroup()
+                        .addGap(156, 156, 156)
+                        .addComponent(portNumLabel_)))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
-        serverPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {durationTextField_, ipField_, portNumberField_, timeRemainingLabel_});
+        serverPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {durationLabel_, ipLabel_});
 
-        serverPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ipLabel_, jLabel1, jLabel2, portNumberLabel_});
+        serverPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {closeSurveyButton_, openSurveyButton_, sendButton_});
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(serverPanel_, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(serverPanel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(serverPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(serverPanel_, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -213,24 +228,24 @@ public class Server extends javax.swing.JFrame {
                 new Server().setVisible(true);
             }
         });
+        
+       //server_ = new ServerSocket()
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField durationTextField_;
-    private javax.swing.JTextField ipField_;
+    private javax.swing.JButton closeSurveyButton_;
+    private static javax.swing.JFormattedTextField durationFTextField_;
+    private javax.swing.JLabel durationLabel_;
+    private static javax.swing.JFormattedTextField ipFTextField_;
     private javax.swing.JLabel ipLabel_;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSeparator jSeparator1;
     private static javax.swing.JTextArea msgTextArea_;
-    private javax.swing.JLabel outputLabel_;
-    private javax.swing.JTextField portNumberField_;
-    private javax.swing.JLabel portNumberLabel_;
+    private javax.swing.JButton openSurveyButton_;
+    private javax.swing.JFormattedTextField portNumFTextField_;
+    private javax.swing.JLabel portNumLabel_;
+    private static javax.swing.JLabel remOutputLabel_;
+    private javax.swing.JLabel remainingLabel_;
     private javax.swing.JButton sendButton_;
     private javax.swing.JPanel serverPanel_;
-    private javax.swing.JLabel timeRemainingLabel_;
     // End of variables declaration//GEN-END:variables
 }
