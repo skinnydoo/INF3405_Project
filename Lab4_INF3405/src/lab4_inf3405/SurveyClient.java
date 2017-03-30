@@ -5,19 +5,119 @@
  */
 package lab4_inf3405;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 /**
  *
  * @author Simel
  */
-public class SurveyClient extends javax.swing.JFrame {
+public class SurveyClient extends javax.swing.JFrame implements SurveyFormControlFormatter {
 
+    private static Socket socket_;
+    private static InputStream instream_;
+    private static OutputStream outstream_;
+    private static Scanner in_;
+    private static PrintWriter out_;
+    
+    private static boolean surveyIsOpen_ = false;
+    private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
+    
+    private static int clientPortNumber_;
+    private static String clientIPAddress_;
+    
+    private final List<javax.swing.JFormattedTextField> fieldList_;
+    
     /**
      * Creates new form Client
      */
     public SurveyClient() {
+        fieldList_ = new ArrayList<>();
+        setFieldFormat();
         initComponents();
+        
+        fieldList_.add(portNumFTextField_);
+        fieldList_.add(ipFTextField_);
+        
+        DocumentListener documentListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                checkFieldsFull();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                checkFieldsFull();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                 checkFieldsFull();
+            }
+        };
+        
+        // populate document listener for all fields
+        for(javax.swing.JFormattedTextField field : fieldList_)
+            field.getDocument().addDocumentListener(documentListener);
     }
 
+    @Override
+    public void setFieldFormat() {
+        //No Implementation
+    }
+
+    @Override
+    public void validatePortNumber() {
+        
+        try {
+                        
+             Object[] options = { "OK", "CANCEL" };
+                if ( Integer.parseInt(portNumFTextField_.getText().trim() ) < 10000 || Integer.parseInt(portNumFTextField_.getText().trim() ) > 10050) {
+                    JOptionPane.showOptionDialog(clientPanel_, "Port Nnumber Must Be Between 10000 and 10050", "Error",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);                    
+                    
+                    portNumFTextField_.setValue("");
+                }
+            }catch (NumberFormatException ex) {
+                
+                JOptionPane.showMessageDialog(clientPanel_, "Port Number Should Be An Integer", "Error", JOptionPane.ERROR_MESSAGE);
+                portNumFTextField_.setValue("");
+         
+         }
+        
+    }
+
+    @Override
+    public void checkFieldsFull() {
+        
+        for(javax.swing.JFormattedTextField field : fieldList_) {
+            
+            if (field.getText().trim().isEmpty()) {
+                connectButton_.setEnabled(false);
+                sendButton_.setEnabled(false);
+                disconnectButton_.setEnabled(false);
+                
+                return;
+            }
+        }
+        
+        connectButton_.setEnabled(true);
+        sendButton_.setEnabled(true);
+        disconnectButton_.setEnabled(true);
+    }
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -31,12 +131,12 @@ public class SurveyClient extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         msgTextArea_ = new javax.swing.JTextArea();
         serverIpLabel_ = new javax.swing.JLabel();
-        ipTextField_ = new javax.swing.JTextField();
         serverPortLabel_ = new javax.swing.JLabel();
-        portNumTextField_ = new javax.swing.JTextField();
         connectButton_ = new javax.swing.JButton();
         sendButton_ = new javax.swing.JButton();
         disconnectButton_ = new javax.swing.JButton();
+        portNumFTextField_ = new javax.swing.JFormattedTextField();
+        ipFTextField_ = new javax.swing.JFormattedTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -48,51 +148,71 @@ public class SurveyClient extends javax.swing.JFrame {
 
         serverIpLabel_.setText("Server IP Addr:");
 
-        ipTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
-        ipTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
-
         serverPortLabel_.setText("Server Port # :");
 
-        portNumTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        portNumTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
-        portNumTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
-
         connectButton_.setText("CONNECT");
+        connectButton_.setEnabled(false);
+        connectButton_.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connectButton_ActionPerformed(evt);
+            }
+        });
 
         sendButton_.setText("SEND");
+        sendButton_.setEnabled(false);
+        sendButton_.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendButton_ActionPerformed(evt);
+            }
+        });
 
         disconnectButton_.setText("DISCONNECT");
+        disconnectButton_.setEnabled(false);
+        disconnectButton_.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                disconnectButton_ActionPerformed(evt);
+            }
+        });
+
+        portNumFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        portNumFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+        portNumFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                portNumFTextField_FocusLost(evt);
+            }
+        });
+
+        ipFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
+        ipFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
+        ipFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                ipFTextField_FocusLost(evt);
+            }
+        });
 
         javax.swing.GroupLayout clientPanel_Layout = new javax.swing.GroupLayout(clientPanel_);
         clientPanel_.setLayout(clientPanel_Layout);
         clientPanel_Layout.setHorizontalGroup(
             clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(clientPanel_Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(clientPanel_Layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
-                        .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(clientPanel_Layout.createSequentialGroup()
-                                .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(12, 12, 12)
-                                .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(disconnectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(clientPanel_Layout.createSequentialGroup()
-                                .addComponent(serverIpLabel_)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(ipTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(serverPortLabel_)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(portNumTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(disconnectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(clientPanel_Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                        .addComponent(serverIpLabel_)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(serverPortLabel_)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
-
-        clientPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {ipTextField_, portNumTextField_});
 
         clientPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {connectButton_, disconnectButton_});
 
@@ -102,21 +222,18 @@ public class SurveyClient extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(portNumTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ipTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(serverIpLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(serverPortLabel_))
-                .addGap(18, 18, 18)
-                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(disconnectButton_)
-                        .addComponent(sendButton_))
-                    .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(serverPortLabel_)
+                    .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(sendButton_)
+                    .addComponent(disconnectButton_))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
-
-        clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ipTextField_, portNumTextField_});
 
         clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {connectButton_, disconnectButton_, sendButton_});
 
@@ -126,21 +243,80 @@ public class SurveyClient extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(clientPanel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(clientPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(clientPanel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(clientPanel_, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
+        
+        if (ipFTextField_.getText().equals(""))
+            return;
+             
+        ipAddressOk_ = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
+        
+        if (!ipAddressOk_) {
+            
+            JOptionPane.showMessageDialog(clientPanel_, "Wrong IP Format", "Error", JOptionPane.ERROR_MESSAGE);
+            //ipFTextField_.setValue("");
+           
+        }
+    }//GEN-LAST:event_ipFTextField_FocusLost
+
+    private void portNumFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_portNumFTextField_FocusLost
+        
+        if( portNumFTextField_.getText().equals("") )
+            return;
+        
+        validatePortNumber();
+    }//GEN-LAST:event_portNumFTextField_FocusLost
+
+    private void connectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButton_ActionPerformed
+        
+         clientPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
+         clientIPAddress_ = ipFTextField_.getText().trim();
+         
+        try {
+            
+            socket_ = new Socket(clientIPAddress_, clientPortNumber_);
+            
+            if (SurveyServer.surveyIsOpen_) {          
+                
+                instream_ = socket_.getInputStream();
+                outstream_ = socket_.getOutputStream();
+                in_ = new Scanner(instream_);
+                out_ = new PrintWriter(outstream_);
+
+               // read server response
+               while(in_.hasNextLine()) {
+                   
+                   String input = in_.nextLine();
+                   msgTextArea_.setText(msgTextArea_.getText().trim() + "\n" + input);
+               }
+            }
+            
+        } catch (IOException ex) {
+           
+            Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_connectButton_ActionPerformed
+
+    private void sendButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButton_ActionPerformed
+        
+        // send answer
+        String response = msgTextArea_.getText().trim();
+        out_.print(response);
+        out_.flush();
+    }//GEN-LAST:event_sendButton_ActionPerformed
+
+    private void disconnectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButton_ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_disconnectButton_ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -176,18 +352,40 @@ public class SurveyClient extends javax.swing.JFrame {
                 new SurveyClient().setVisible(true);
             }
         });
+        
+       /* if (SurveyServer.surveyIsOpen_) {
+            
+            try {
+                
+                instream_ = socket_.getInputStream();
+                outstream_ = socket_.getOutputStream();
+                in_ = new Scanner(instream_);
+                out_ = new PrintWriter(outstream_);
+
+               // read server response
+               while(in_.hasNextLine()) {
+                   
+                   String input = in_.nextLine();
+                   msgTextArea_.setText(msgTextArea_.getText().trim() + "\n" + input);
+               }
+                
+            } catch (IOException ex) {
+                Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }*/
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel clientPanel_;
     private javax.swing.JButton connectButton_;
     private javax.swing.JButton disconnectButton_;
-    private javax.swing.JTextField ipTextField_;
+    private static javax.swing.JFormattedTextField ipFTextField_;
     private javax.swing.JScrollPane jScrollPane1;
     private static javax.swing.JTextArea msgTextArea_;
-    private javax.swing.JTextField portNumTextField_;
+    private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JButton sendButton_;
     private javax.swing.JLabel serverIpLabel_;
     private javax.swing.JLabel serverPortLabel_;
     // End of variables declaration//GEN-END:variables
+
 }

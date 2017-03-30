@@ -17,6 +17,8 @@ public class Survey {
     public static void main(String[] args) {
         // TODO code application logic here
         
+       // SurveyServer server = new SurveyServer();
+        //SurveyClient client = new SurveyClient();
        
     }
     
