@@ -16,6 +16,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -26,9 +27,10 @@ import javax.swing.event.DocumentListener;
  */
 public class SurveyServer extends javax.swing.JFrame implements SurveyFormControlFormatter {
 
-    private static ServerSocket server_;
-    private static Scanner in_;
-    private static PrintWriter out_;
+    private ServerSocket server_;
+    private PrintWriter outWriter_;
+    private List<PrintWriter> clientOutputStreamList_;
+    private List<String> clientsList_;
     
     static boolean surveyIsOpen_ = false;
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
@@ -366,59 +368,103 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
         
+        try {
+            
+            Thread.sleep(5000);
+            
+        } catch (InterruptedException e) {
+            
+            Thread.currentThread().interrupt();
+        }
+        
+        outputTextArea_.append("Server is stopping...\n");        
         surveyIsOpen_= false;
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
-    private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
-        
-        surveyPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
-        
-        try {
-           
-            server_ = new ServerSocket(surveyPortNumber_);
-            surveyIsOpen_ = true;
-           // openSurveyButton_.setEnabled(false);
-            
-            if (surveyIsOpen_) {
-            
-            System.out.println("we here");
-            this.outputTextArea_.setText("Waiting for clients to connect...\n");
-            
-            while (surveyIsOpen_) {
-                
-                try( Socket socket = server_.accept() ) {
-                    
-                    outputTextArea_.setText("Client connected.\n\n");
-                    SurveyService service = new SurveyService(socket);
-                    Thread t = new Thread(service);
-                    t.start();
-                    
-                } //catch (Exception e) {}               
-            }
-        }
-        
-        } catch (IOException ex) {
-            Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_openSurveyButton_ActionPerformed
-
     private void sendButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButton_ActionPerformed
         
-        String question = questionTextArea_.getText().trim();
+       /* String question = questionTextArea_.getText().trim();
         out_.println(question);
-        out_.flush();
+        out_.flush();*/
     }//GEN-LAST:event_sendButton_ActionPerformed
+
+    private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
+        
+        startServer();
+        
+        outputTextArea_.append("Waiting for clients to connect...\n");
+        openSurveyButton_.setEnabled(false);
+    }//GEN-LAST:event_openSurveyButton_ActionPerformed
     
     
-    
+    /**
+     * Start the Server on a different thread
+     */
+    private void startServer() {
+        
+         
+        
+        SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+          
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                
+                surveyPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
+                clientOutputStreamList_ = new ArrayList();
+                
+                try {
+                    
+                   
+                   server_ = new ServerSocket(surveyPortNumber_);
+                   surveyIsOpen_ = true;
+                                     
+                   // should be while time has not elapsed
+                    while (true) {                        
+                        
+                        Socket socket = server_.accept();
+                        outputTextArea_.append("Client connected.\n");
+                        
+                        outWriter_ = new PrintWriter(socket.getOutputStream());
+                        clientOutputStreamList_.add(outWriter_);
+                        
+                        SurveyService service = new SurveyService(socket);
+                        Thread t = new Thread(service);
+                        t.start();
+                    }
+
+                } catch (IOException ex) {
+            
+                    Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);  
+                    surveyIsOpen_ = false;
+                }
+                
+                return surveyIsOpen_;
+            }
+
+            @Override
+            protected void done() {
+               
+            }
+
+            @Override
+            protected void process(List<Void> chunks) {
+                
+            }
+
+           
+        };
+        
+        worker.execute();
+    }
 
     /**
      * Inner class SurveyService that execute Survey Access Protocol
      * commands from a socket
      */
-    private static class SurveyService implements Runnable {
+    private class SurveyService implements Runnable {
 
-        private Socket socket_;
+        private final Socket socket_;
+        private Scanner in_;
         
         /**
          * Construct a service object that processes commands
@@ -429,7 +475,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         SurveyService(Socket socket) {
 
             socket_ = socket;
-      
         }
 
         @Override
@@ -438,12 +483,14 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
             try {
 
                 in_ = new Scanner(socket_.getInputStream());
-                out_ = new PrintWriter(socket_.getOutputStream());
+                outWriter_ = new PrintWriter(socket_.getOutputStream());
                 doService();
 
             } catch (IOException e) {
 
+                outputTextArea_.append("Unexpedted Error...\n");
                 e.printStackTrace();
+                
             }
 
         }
@@ -476,7 +523,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                               socket_.getRemoteSocketAddress().toString() + " : " +
                               socket_.getPort() + " - " + answer;
             
-            outputTextArea_.setText(response);
+            outputTextArea_.append(response + "\n");
         }
     
     }
@@ -516,25 +563,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         java.awt.EventQueue.invokeLater(() -> {
             new SurveyServer().setVisible(true);
         });        
-        
-        
-        /*if (surveyIsOpen_) {
-            
-            System.out.println("we here");
-            outputTextArea_.setText("Waiting for clients to connect...\n");
-            
-            while (surveyIsOpen_) {
-                
-                try( Socket socket = server_.accept() ) {
-                    
-                    outputTextArea_.setText("Client connected.\n\n");
-                    SurveyService service = new SurveyService(socket);
-                    Thread t = new Thread(service);
-                    t.start();
-                    
-                } //catch (Exception e) {}               
-            }
-        }*/
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -547,14 +576,14 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JButton openSurveyButton_;
-    private static javax.swing.JTextArea outputTextArea_;
+    private javax.swing.JTextArea outputTextArea_;
     private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JLabel portNumLabel_;
-    private static javax.swing.JTextArea questionTextArea_;
+    private javax.swing.JTextArea questionTextArea_;
     private static javax.swing.JLabel remOutputLabel_;
     private javax.swing.JLabel remainingLabel_;
     private javax.swing.JButton sendButton_;
-    private static javax.swing.JPanel serverPanel_;
+    private javax.swing.JPanel serverPanel_;
     // End of variables declaration//GEN-END:variables
 
 }

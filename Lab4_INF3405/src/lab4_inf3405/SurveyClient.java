@@ -25,19 +25,20 @@ import javax.swing.event.DocumentListener;
  */
 public class SurveyClient extends javax.swing.JFrame implements SurveyFormControlFormatter {
 
-    private static Socket socket_;
-    private static InputStream instream_;
-    private static OutputStream outstream_;
-    private static Scanner in_;
-    private static PrintWriter out_;
+    private  Socket socket_;
+    private  Scanner in_;
+    private  PrintWriter out_;
     
-    private static boolean surveyIsOpen_ = false;
-    private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
+    
+    //private static boolean surveyIsOpen_ = false;
+    private boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
+    private boolean isConnected_ = false;
     
     private static int clientPortNumber_;
     private static String clientIPAddress_;
     
     private final List<javax.swing.JFormattedTextField> fieldList_;
+    private List<String> clientList_;
     
     /**
      * Creates new form Client
@@ -278,46 +279,116 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
 
     private void connectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButton_ActionPerformed
         
-         clientPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
-         clientIPAddress_ = ipFTextField_.getText().trim();
-         
-        try {
-            
-            socket_ = new Socket(clientIPAddress_, clientPortNumber_);
-            
-            if (SurveyServer.surveyIsOpen_) {          
-                
-                instream_ = socket_.getInputStream();
-                outstream_ = socket_.getOutputStream();
-                in_ = new Scanner(instream_);
-                out_ = new PrintWriter(outstream_);
+        if (!isConnected_) {
+        
+            clientPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
+            clientIPAddress_ = ipFTextField_.getText().trim();
+            ipFTextField_.setEditable(false);
+            portNumFTextField_.setEditable(false);
 
-               // read server response
-               while(in_.hasNextLine()) {
+           try {
+
+               socket_ = new Socket(clientIPAddress_, clientPortNumber_);
+
+               if (SurveyServer.surveyIsOpen_) {          
+
+
+                   InputStream instream = socket_.getInputStream();
+                   OutputStream outstream = socket_.getOutputStream();
+                   in_ = new Scanner(instream);
+                   out_ = new PrintWriter(outstream);
+                   isConnected_ = true;
+                   connectButton_.setEnabled(false);
                    
-                   String input = in_.nextLine();
-                   msgTextArea_.setText(msgTextArea_.getText().trim() + "\n" + input);
+                  // read server response
+                  while(in_.hasNextLine()) {
+
+                      String input = in_.nextLine();
+                      msgTextArea_.append(input + "\n");
+                  }
                }
-            }
-            
-        } catch (IOException ex) {
+
+           } catch (IOException ex) {
+
+               msgTextArea_.append("Failed to connect! Try again.\n");
+               Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
+           }
            
-            Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
+           /*ClientService service = new ClientService();
+           Thread t = new Thread(service);
+           t.start();*/
         }
+        
     }//GEN-LAST:event_connectButton_ActionPerformed
 
     private void sendButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButton_ActionPerformed
         
         // send answer
         String response = msgTextArea_.getText().trim();
-        out_.print(response);
-        out_.flush();
+        
+        if (response.equals("")) {
+            
+            msgTextArea_.setText("");
+            msgTextArea_.requestFocus();
+        } else {
+            
+            try {
+                
+                out_.println(response);
+                out_.flush();
+                
+            } catch (Exception e) {
+                
+                msgTextArea_.append("Message was not sent. \n");
+            }
+            
+             msgTextArea_.setText("");
+             msgTextArea_.requestFocus();
+        }
+        
+        msgTextArea_.setText("");
+        msgTextArea_.requestFocus();
+        
     }//GEN-LAST:event_sendButton_ActionPerformed
 
     private void disconnectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButton_ActionPerformed
-        // TODO add your handling code here:
+        
+        String disconnect = ipFTextField_.getText() + " has disconnected";
+        
+        try {
+            
+            out_.println(disconnect);
+            out_.flush();
+            
+            socket_.close();
+            
+        } catch (Exception e) {
+        }
+        
+        isConnected_ = false;
     }//GEN-LAST:event_disconnectButton_ActionPerformed
 
+    
+    public class ClientService implements Runnable {
+
+        @Override
+        public void run() {
+            
+            try {
+                
+                // read server response
+                while(in_.hasNextLine()) {
+
+                    String input = in_.nextLine();
+                    msgTextArea_.append(input + "\n");
+                }
+                
+            } catch (Exception e) {
+            }
+            
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -353,26 +424,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
             }
         });
         
-       /* if (SurveyServer.surveyIsOpen_) {
-            
-            try {
-                
-                instream_ = socket_.getInputStream();
-                outstream_ = socket_.getOutputStream();
-                in_ = new Scanner(instream_);
-                out_ = new PrintWriter(outstream_);
-
-               // read server response
-               while(in_.hasNextLine()) {
-                   
-                   String input = in_.nextLine();
-                   msgTextArea_.setText(msgTextArea_.getText().trim() + "\n" + input);
-               }
-                
-            } catch (IOException ex) {
-                Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }*/
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -381,7 +432,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     private javax.swing.JButton disconnectButton_;
     private static javax.swing.JFormattedTextField ipFTextField_;
     private javax.swing.JScrollPane jScrollPane1;
-    private static javax.swing.JTextArea msgTextArea_;
+    private javax.swing.JTextArea msgTextArea_;
     private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JButton sendButton_;
     private javax.swing.JLabel serverIpLabel_;
