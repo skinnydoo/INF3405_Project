@@ -5,14 +5,13 @@
  */
 package lab4_inf3405;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -26,8 +25,8 @@ import javax.swing.event.DocumentListener;
 public class SurveyClient extends javax.swing.JFrame implements SurveyFormControlFormatter {
 
     private  Socket socket_;
-    private  Scanner in_;
-    private  PrintWriter out_;
+    private  BufferedReader reader_;
+    private  PrintWriter outWriter_;
     
     
     //private static boolean surveyIsOpen_ = false;
@@ -38,7 +37,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     private static String clientIPAddress_;
     
     private final List<javax.swing.JFormattedTextField> fieldList_;
-    private List<String> clientList_;
     
     /**
      * Creates new form Client
@@ -74,7 +72,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     }
 
     @Override
-    public void setFieldFormat() {
+    public final void setFieldFormat() {
         //No Implementation
     }
 
@@ -290,23 +288,44 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
 
                socket_ = new Socket(clientIPAddress_, clientPortNumber_);
 
-               if (SurveyServer.surveyIsOpen_) {          
+               //if (SurveyServer.surveyIsOpen_) {          
 
 
-                   InputStream instream = socket_.getInputStream();
-                   OutputStream outstream = socket_.getOutputStream();
-                   in_ = new Scanner(instream);
-                   out_ = new PrintWriter(outstream);
-                   isConnected_ = true;
-                   connectButton_.setEnabled(false);
+                   InputStreamReader instream = new InputStreamReader(socket_.getInputStream());
+                   reader_ = new BufferedReader(instream);
                    
-                  // read server response
-                  while(in_.hasNextLine()) {
+                   outWriter_ = new PrintWriter(socket_.getOutputStream(), true); // with autoflush
+                   outWriter_.println("ping");
+                   
+                   
+                   isConnected_ = true;
+                   connectButton_.setEnabled(false);                  
+                  
+                   //Create a new Thread so we can read
+                   // server response and update the GUI without
+                   // blocking it
+                   Thread t = new Thread(new Runnable() {
+                  
+                       @Override                   
+                       public void run() {
+                       
+                           try {
+                
+                                // read server response                  
+                                 String response;
+                                  while ( (response = reader_.readLine()) != null ) {                       
 
-                      String input = in_.nextLine();
-                      msgTextArea_.append(input + "\n");
-                  }
-               }
+                                     msgTextArea_.append(response + " \n");
+                                  }
+
+                             } catch (Exception e) {}
+                   
+                       }
+                    });
+                   
+                   t.start(); // start the newly created thread
+                   
+              // }
 
            } catch (IOException ex) {
 
@@ -314,9 +333,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
                Logger.getLogger(SurveyClient.class.getName()).log(Level.SEVERE, null, ex);
            }
            
-           /*ClientService service = new ClientService();
-           Thread t = new Thread(service);
-           t.start();*/
         }
         
     }//GEN-LAST:event_connectButton_ActionPerformed
@@ -334,8 +350,8 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
             
             try {
                 
-                out_.println(response);
-                out_.flush();
+                outWriter_.println(response);
+                outWriter_.flush();
                 
             } catch (Exception e) {
                 
@@ -357,8 +373,8 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         
         try {
             
-            out_.println(disconnect);
-            out_.flush();
+            outWriter_.println(disconnect);
+            outWriter_.flush();
             
             socket_.close();
             
@@ -369,25 +385,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     }//GEN-LAST:event_disconnectButton_ActionPerformed
 
     
-    public class ClientService implements Runnable {
-
-        @Override
-        public void run() {
-            
-            try {
-                
-                // read server response
-                while(in_.hasNextLine()) {
-
-                    String input = in_.nextLine();
-                    msgTextArea_.append(input + "\n");
-                }
-                
-            } catch (Exception e) {
-            }
-            
-        }
-    }
     
     /**
      * @param args the command line arguments

@@ -51,8 +51,6 @@
                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
                       <Group type="102" attributes="0">
                           <Component id="openSurveyButton_" linkSize="11" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="sendButton_" min="-2" pref="133" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
                           <Component id="closeSurveyButton_" linkSize="11" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -119,10 +117,7 @@
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Component id="closeSurveyButton_" linkSize="12" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                                          <Component id="openSurveyButton_" linkSize="12" alignment="3" min="-2" pref="46" max="-2" attributes="0"/>
-                                          <Component id="sendButton_" linkSize="12" alignment="3" min="-2" pref="50" max="-2" attributes="0"/>
-                                      </Group>
+                                      <Component id="openSurveyButton_" linkSize="12" alignment="0" min="-2" pref="46" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <Component id="jSeparator1" alignment="0" min="-2" pref="294" max="-2" attributes="0"/>
@@ -153,6 +148,9 @@
                 <Property name="rows" type="int" value="5"/>
                 <Property name="name" type="java.lang.String" value="QuestionTextArea" noResource="true"/>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+              </AuxValues>
             </Component>
           </SubComponents>
         </Container>
@@ -165,15 +163,6 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Duration:"/>
           </Properties>
-        </Component>
-        <Component class="javax.swing.JButton" name="sendButton_">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="SEND"/>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="sendButton_ActionPerformed"/>
-          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="openSurveyButton_">
           <Properties>
