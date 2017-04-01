@@ -136,13 +136,16 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         disconnectButton_ = new javax.swing.JButton();
         portNumFTextField_ = new javax.swing.JFormattedTextField();
         ipFTextField_ = new javax.swing.JFormattedTextField();
+        msgTextField_ = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         clientPanel_.setBorder(javax.swing.BorderFactory.createTitledBorder("Client"));
 
+        msgTextArea_.setEditable(false);
         msgTextArea_.setColumns(20);
         msgTextArea_.setRows(5);
+        msgTextArea_.setFocusable(false);
         jScrollPane1.setViewportView(msgTextArea_);
 
         serverIpLabel_.setText("Server IP Addr:");
@@ -189,28 +192,35 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
             }
         });
 
+        msgTextField_.setEnabled(false);
+
         javax.swing.GroupLayout clientPanel_Layout = new javax.swing.GroupLayout(clientPanel_);
         clientPanel_.setLayout(clientPanel_Layout);
         clientPanel_Layout.setHorizontalGroup(
             clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(clientPanel_Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(jScrollPane1)
+                    .addComponent(msgTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(9, Short.MAX_VALUE))
+            .addGroup(clientPanel_Layout.createSequentialGroup()
+                .addGap(6, 6, 6)
                 .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(serverIpLabel_)
+                    .addComponent(serverPortLabel_))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(clientPanel_Layout.createSequentialGroup()
-                        .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(disconnectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(clientPanel_Layout.createSequentialGroup()
-                        .addComponent(serverIpLabel_)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(serverPortLabel_)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(clientPanel_Layout.createSequentialGroup()
+                        .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(disconnectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         clientPanel_Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {connectButton_, disconnectButton_});
@@ -218,23 +228,22 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         clientPanel_Layout.setVerticalGroup(
             clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(clientPanel_Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(serverIpLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(connectButton_)
                     .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(serverPortLabel_)
-                    .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(connectButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(sendButton_)
-                    .addComponent(disconnectButton_))
-                .addContainerGap(24, Short.MAX_VALUE))
+                    .addComponent(serverIpLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(clientPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(disconnectButton_)
+                    .addComponent(serverPortLabel_))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(msgTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addComponent(sendButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-
-        clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {connectButton_, disconnectButton_, sendButton_});
 
         clientPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {serverIpLabel_, serverPortLabel_});
 
@@ -246,7 +255,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(clientPanel_, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(clientPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -278,18 +287,16 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     private void connectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButton_ActionPerformed
         
         if (!isConnected_) {
-        
+            
             clientPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
             clientIPAddress_ = ipFTextField_.getText().trim();
             ipFTextField_.setEditable(false);
             portNumFTextField_.setEditable(false);
+            msgTextField_.setEnabled(true);
 
            try {
 
                socket_ = new Socket(clientIPAddress_, clientPortNumber_);
-
-               //if (SurveyServer.surveyIsOpen_) {          
-
 
                    InputStreamReader instream = new InputStreamReader(socket_.getInputStream());
                    reader_ = new BufferedReader(instream);
@@ -324,8 +331,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
                     });
                    
                    t.start(); // start the newly created thread
-                   
-              // }
 
            } catch (IOException ex) {
 
@@ -340,12 +345,12 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     private void sendButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButton_ActionPerformed
         
         // send answer
-        String response = msgTextArea_.getText().trim();
+        String response = msgTextField_.getText().trim();
         
         if (response.equals("")) {
             
-            msgTextArea_.setText("");
-            msgTextArea_.requestFocus();
+            msgTextField_.setText("");
+            msgTextField_.requestFocus();
         } else {
             
             try {
@@ -358,12 +363,12 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
                 msgTextArea_.append("Message was not sent. \n");
             }
             
-             msgTextArea_.setText("");
-             msgTextArea_.requestFocus();
+             msgTextField_.setText("");
+             msgTextField_.requestFocus();
         }
         
-        msgTextArea_.setText("");
-        msgTextArea_.requestFocus();
+        msgTextField_.setText("");
+        msgTextField_.requestFocus();
         
     }//GEN-LAST:event_sendButton_ActionPerformed
 
@@ -416,6 +421,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new SurveyClient().setVisible(true);
             }
@@ -430,6 +436,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
     private static javax.swing.JFormattedTextField ipFTextField_;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea msgTextArea_;
+    private javax.swing.JTextField msgTextField_;
     private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JButton sendButton_;
     private javax.swing.JLabel serverIpLabel_;

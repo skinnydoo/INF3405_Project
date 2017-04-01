@@ -5,6 +5,7 @@
  */
 package lab4_inf3405;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,6 +15,9 @@ import java.net.Socket;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -30,11 +34,11 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
     private ServerSocket server_;
     private List<String> clientsList_;
+    Timer timer_;
+    int timerCounter_;
+    static boolean surveyIsOver_ = false;
     
-    static boolean surveyIsOpen_ = false;
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
-    
-    private static int surveyPortNumber_;
     
     private NumberFormat durationFormat_;
    
@@ -161,7 +165,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         portNumLabel_ = new javax.swing.JLabel();
         closeSurveyButton_ = new javax.swing.JButton();
         remainingLabel_ = new javax.swing.JLabel();
-        remOutputLabel_ = new javax.swing.JLabel();
+        timerLabel_ = new javax.swing.JLabel();
         portNumFTextField_ = new javax.swing.JFormattedTextField();
         ipFTextField_ = new javax.swing.JFormattedTextField();
         durationFTextField_ = new javax.swing.JFormattedTextField(durationFormat_);
@@ -172,10 +176,12 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         serverPanel_.setBorder(javax.swing.BorderFactory.createTitledBorder("Server"));
+        serverPanel_.setFocusCycleRoot(true);
         serverPanel_.setName("Server"); // NOI18N
 
         questionTextArea_.setColumns(20);
         questionTextArea_.setRows(5);
+        questionTextArea_.setTabSize(4);
         questionTextArea_.setName("QuestionTextArea"); // NOI18N
         jScrollPane1.setViewportView(questionTextArea_);
 
@@ -203,11 +209,11 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
         remainingLabel_.setText("Remaining:");
 
-        remOutputLabel_.setText("jLabel4");
-        remOutputLabel_.setMinimumSize(new java.awt.Dimension(104, 24));
-        remOutputLabel_.setPreferredSize(new java.awt.Dimension(104, 24));
+        timerLabel_.setMinimumSize(new java.awt.Dimension(104, 24));
+        timerLabel_.setPreferredSize(new java.awt.Dimension(104, 24));
 
         portNumFTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        portNumFTextField_.setFocusTraversalPolicy(ipFTextField_.getFocusTraversalPolicy());
         portNumFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         portNumFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
         portNumFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -216,6 +222,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
             }
         });
 
+        ipFTextField_.setFocusTraversalPolicy(serverPanel_.getFocusTraversalPolicy());
         ipFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         ipFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
         ipFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -225,6 +232,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         });
 
         durationFTextField_.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        durationFTextField_.setFocusTraversalPolicy(portNumFTextField_.getFocusTraversalPolicy());
         durationFTextField_.setMinimumSize(new java.awt.Dimension(104, 24));
         durationFTextField_.setPreferredSize(new java.awt.Dimension(104, 24));
         durationFTextField_.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -235,8 +243,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
+        outputTextArea_.setEditable(false);
         outputTextArea_.setColumns(20);
         outputTextArea_.setRows(5);
+        outputTextArea_.setFocusable(false);
         jScrollPane2.setViewportView(outputTextArea_);
 
         javax.swing.GroupLayout serverPanel_Layout = new javax.swing.GroupLayout(serverPanel_);
@@ -244,13 +254,9 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         serverPanel_Layout.setHorizontalGroup(
             serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(serverPanel_Layout.createSequentialGroup()
-                .addGap(22, 22, 22)
+                .addContainerGap()
                 .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(serverPanel_Layout.createSequentialGroup()
-                        .addComponent(openSurveyButton_)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(closeSurveyButton_))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
                         .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(serverPanel_Layout.createSequentialGroup()
                                 .addComponent(ipLabel_)
@@ -266,13 +272,17 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                             .addComponent(portNumLabel_))
                         .addGap(18, 18, 18)
                         .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(remOutputLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(timerLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(serverPanel_Layout.createSequentialGroup()
+                        .addComponent(openSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(closeSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -280,37 +290,32 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
         serverPanel_Layout.setVerticalGroup(
             serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(serverPanel_Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(serverPanel_Layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(portNumLabel_))
+                    .addGroup(serverPanel_Layout.createSequentialGroup()
                         .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(serverPanel_Layout.createSequentialGroup()
-                                .addGap(156, 156, 156)
-                                .addComponent(portNumLabel_))
-                            .addGroup(serverPanel_Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(26, 26, 26)
-                                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(ipLabel_))
-                                .addGap(20, 20, 20)
-                                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(durationFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(durationLabel_)
-                                    .addComponent(remainingLabel_)
-                                    .addComponent(remOutputLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(closeSurveyButton_)
-                                    .addComponent(openSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, serverPanel_Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane2)))
-                .addContainerGap())
+                            .addComponent(portNumFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ipFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ipLabel_))
+                        .addGap(20, 20, 20)
+                        .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(durationFTextField_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(durationLabel_)
+                            .addComponent(remainingLabel_)
+                            .addComponent(timerLabel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(serverPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(openSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(closeSurveyButton_, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(12, Short.MAX_VALUE))
+            .addComponent(jScrollPane2)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
         serverPanel_Layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {durationLabel_, ipLabel_});
@@ -321,11 +326,13 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(serverPanel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(serverPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(serverPanel_, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(serverPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -376,13 +383,17 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         }
         
         outputTextArea_.append("Server is stopping...\n");        
-        surveyIsOpen_= false;
+        surveyIsOver_= false;
+        timer_.cancel();
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
         
-        surveyPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
-        startServer();
+        int surveyPortNumber = Integer.parseInt(portNumFTextField_.getText().trim());
+        int duration = Integer.parseInt(durationFTextField_.getText().trim());
+        
+        startTimer(duration);
+        startServer(surveyPortNumber);
         
         outputTextArea_.append("Waiting for clients to connect...\n");
         openSurveyButton_.setEnabled(false);
@@ -390,31 +401,61 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         ipFTextField_.setEditable(false);
         questionTextArea_.setEditable(false);
         durationFTextField_.setEditable(false);
+        
+        
     }//GEN-LAST:event_openSurveyButton_ActionPerformed
+ 
+    /**
+     * Start a timer for the survey duration
+     * @param duration the survey duration
+     */
+    private void startTimer(int duration) {
+        
+        timer_ = new Timer();
+        timerCounter_ = duration;
+        TimerTask task = new TimerTask() {
+           
+            @Override
+            public void run() {
+                
+                timerLabel_.setText(Integer.toString(timerCounter_));
+                --timerCounter_;
+                
+                if (timerCounter_ <= -1 ) {                    
+                    timer_.cancel();  
+                    surveyIsOver_ = true;
+                }
+            }
+        };
     
+        timer_.scheduleAtFixedRate(task, 0, 1000);
+    }
     
     /**
      * Start the Server on a different thread
      */
-    private void startServer() {
-    
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+    private void startServer(int portNumber ) {
+        
+        
+        SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
         
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Boolean doInBackground() throws Exception {
               
                 clientsList_ =  new ArrayList<>();
                 try {                   
                    
-                   server_ = new ServerSocket(surveyPortNumber_);                   
+                   server_ = new ServerSocket(portNumber);                   
                                      
-                   // should be while time has not elapsed
-                    while (true) {                        
+                   
+                    while (!surveyIsOver_) {                        
                         
                         Socket socket = server_.accept();
-                        outputTextArea_.append("Client connected.\n");
-                        clientsList_.add(socket.getRemoteSocketAddress().toString());
                         
+                        //outputTextArea_.append("Client " + socket.getRemoteSocketAddress().toString() + " is connected.\n"); // this is fishy; should not update GUI here
+                        clientsList_.add(socket.getRemoteSocketAddress().toString());
+                                  
+                     
                         SurveyService service = new SurveyService(socket);
                         Thread t = new Thread(service);
                         t.start();
@@ -426,23 +467,25 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                     Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);                    
                 }
                 
-                return null;
+                return surveyIsOver_;
             }
 
             @Override
             protected void done() {
                
-                surveyIsOpen_ = false;
-                outputTextArea_.append("Survey is over.\n");
+                try {
+                    
+                    Boolean status = get();
+                    outputTextArea_.append("Survey is over.\n");
+                    
+                    
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ExecutionException ex) {
+                    Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-
             
-            @Override
-            protected void process(List<Void> chunks) {
-                
-            }
-
-           
         };
         
         worker.execute();
@@ -496,6 +539,13 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 String answer;
                 while ( (answer = reader_.readLine()) != null) {
                     
+                    if(surveyIsOver_) {
+                        
+                        outWriter_.println("Survey is over.");
+                        clientsList_.remove(clientsList_.size() - 1); // remove the last added
+                        return;
+                    }
+                    
                     processResponse(answer);
                     
                 }
@@ -529,7 +579,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                     try {
                         
                         outWriter_.println(question);
-                        outWriter_.flush();
                         
                     } catch (Exception e) {
                         
@@ -606,9 +655,9 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private static javax.swing.JFormattedTextField portNumFTextField_;
     private javax.swing.JLabel portNumLabel_;
     private static javax.swing.JTextArea questionTextArea_;
-    private static javax.swing.JLabel remOutputLabel_;
     private javax.swing.JLabel remainingLabel_;
     private javax.swing.JPanel serverPanel_;
+    private static javax.swing.JLabel timerLabel_;
     // End of variables declaration//GEN-END:variables
 
 }
