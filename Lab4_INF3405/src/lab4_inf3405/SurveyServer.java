@@ -36,7 +36,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private List<String> clientsList_;
     Timer timer_;
     int timerCounter_;
-    static boolean surveyIsOver_ = false;
+    static volatile boolean surveyIsOver_ = false;
     
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
     
@@ -373,18 +373,19 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
         
-        try {
+       /* try {
             
-            Thread.sleep(5000);
+            //Thread.sleep(5000);
+            
              
             
         } catch (InterruptedException e) {
             
             Thread.currentThread().interrupt();
-        }
+        }*/
         
-        outputTextArea_.append("Server is stopping...\n");        
-        surveyIsOver_= false;
+       surveyIsOver_= true;
+        outputTextArea_.append("Server is stopping...\n");  
         timer_.cancel();
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
@@ -453,6 +454,9 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                         
                         Socket socket = server_.accept();
                         
+                        if(surveyIsOver_)
+                            return surveyIsOver_;
+                        
                         //outputTextArea_.append("Client " + socket.getRemoteSocketAddress().toString() + " is connected.\n"); // this is fishy; should not update GUI here
                         clientsList_.add(socket.getRemoteSocketAddress().toString());
                                   
@@ -477,7 +481,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 try {
                     
                     Boolean status = get();
-                    outputTextArea_.append("Survey is over.\n");
+                   // outputTextArea_.append("Survey is over.\n");
                     
                     
                 } catch (InterruptedException ex) {
