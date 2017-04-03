@@ -168,7 +168,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         timerLabel_ = new javax.swing.JLabel();
         portNumFTextField_ = new javax.swing.JFormattedTextField();
         ipFTextField_ = new javax.swing.JFormattedTextField();
-        durationFTextField_ = new javax.swing.JFormattedTextField(durationFormat_);
+        durationFTextField_ = new javax.swing.JFormattedTextField();
         jSeparator1 = new javax.swing.JSeparator();
         jScrollPane2 = new javax.swing.JScrollPane();
         outputTextArea_ = new javax.swing.JTextArea();
@@ -376,6 +376,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         try {
             
             Thread.sleep(5000);
+             
             
         } catch (InterruptedException e) {
             
@@ -588,9 +589,8 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 
             } else {
                 
-                String response = outputTextArea_.getText().trim() + "\n" + 
-                              socket_.getRemoteSocketAddress().toString() + " : " +
-                              socket_.getPort() + " - " + answer;
+                String response =  socket_.getRemoteSocketAddress().toString().substring(1) + " : " +
+                                   socket_.getPort() + " - " + answer;
             
             outputTextArea_.append(response + "\n");
                 
