@@ -43,7 +43,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
      */
     public SurveyClient() {
         fieldList_ = new ArrayList<>();
-        setFieldFormat();
         initComponents();
         
         fieldList_.add(portNumFTextField_);
@@ -69,11 +68,6 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         // populate document listener for all fields
         for(javax.swing.JFormattedTextField field : fieldList_)
             field.getDocument().addDocumentListener(documentListener);
-    }
-
-    @Override
-    public final void setFieldFormat() {
-        //No Implementation
     }
 
     @Override

@@ -26,7 +26,6 @@ public interface SurveyFormControlFormatter {
      */
     Pattern IP_PATTERN = Pattern.compile(IPREGEX);    
     
-    void setFieldFormat();
     void validatePortNumber();
     void checkFieldsFull();    
     

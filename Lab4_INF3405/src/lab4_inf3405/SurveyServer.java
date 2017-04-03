@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -39,8 +38,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     static volatile boolean surveyIsOver_ = false;
     
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
-    
-    private NumberFormat durationFormat_;
    
     private final List<javax.swing.JFormattedTextField> fieldList_;
    
@@ -50,7 +47,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
      */
     public SurveyServer() {
         fieldList_ = new ArrayList<>();
-        setFieldFormat();
         initComponents();
         
         fieldList_.add(ipFTextField_);
@@ -83,17 +79,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         
     }
     
-    
-    /**
-     * Set field format
-     * Declared final because we're calling in it (an overidable method)
-     * in the constructor
-     */
-    @Override
-    public final void setFieldFormat() {
-        
-        durationFormat_ = NumberFormat.getNumberInstance();
-    }
     
     /**
      * Validate port number input
@@ -372,21 +357,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     }//GEN-LAST:event_durationFTextField_FocusLost
 
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
-        
-       /* try {
-            
-            //Thread.sleep(5000);
-            
-             
-            
-        } catch (InterruptedException e) {
-            
-            Thread.currentThread().interrupt();
-        }*/
-        
+       
        surveyIsOver_= true;
-        outputTextArea_.append("Server is stopping...\n");  
-        timer_.cancel();
+       outputTextArea_.append("Server stopped...\n");  
+       timer_.cancel();
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
