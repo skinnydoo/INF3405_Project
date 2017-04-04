@@ -35,7 +35,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private List<String> clientsList_;
     Timer timer_;
     int timerCounter_;
-    static volatile boolean surveyIsOver_ = false;
+    private volatile boolean surveyIsOver_ = false;
     
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
    
@@ -321,6 +321,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -358,9 +359,14 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
        
-       surveyIsOver_= true;
+       stopServer();
        outputTextArea_.append("Server stopped...\n");  
-       timer_.cancel();
+       
+       openSurveyButton_.setEnabled(true);
+       portNumFTextField_.setEditable(true);
+       ipFTextField_.setEditable(true);
+       questionTextArea_.setEditable(true);
+       durationFTextField_.setEditable(true);
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
@@ -399,7 +405,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 
                 if (timerCounter_ <= -1 ) {                    
                     timer_.cancel();  
-                    surveyIsOver_ = true;
+                    stopServer();
                 }
             }
         };
@@ -413,10 +419,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private void startServer(int portNumber ) {
         
         
-        SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
         
             @Override
-            protected Boolean doInBackground() throws Exception {
+            protected Void doInBackground() throws Exception {
               
                 clientsList_ =  new ArrayList<>();
                 try {                   
@@ -429,12 +435,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                         Socket socket = server_.accept();
                         
                         if(surveyIsOver_)
-                            return surveyIsOver_;
+                            return null;
                         
                         //outputTextArea_.append("Client " + socket.getRemoteSocketAddress().toString() + " is connected.\n"); // this is fishy; should not update GUI here
-                        clientsList_.add(socket.getRemoteSocketAddress().toString());
-                                  
-                     
+                       
                         SurveyService service = new SurveyService(socket);
                         Thread t = new Thread(service);
                         t.start();
@@ -446,28 +450,27 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                     Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);                    
                 }
                 
-                return surveyIsOver_;
+                return null;
             }
 
             @Override
             protected void done() {
                
-                try {
-                    
-                    Boolean status = get();
-                   // outputTextArea_.append("Survey is over.\n");
-                    
-                    
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(SurveyServer.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                outputTextArea_.append("End of Survey.\n");
             }
             
         };
         
         worker.execute();
+    }
+    
+    /**
+     * Stop the server and stop the timer as well
+     */
+    private void stopServer() {
+        
+        surveyIsOver_ = true;
+        timer_.cancel();
     }
 
     /**
@@ -521,7 +524,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                     if(surveyIsOver_) {
                         
                         outWriter_.println("Survey is over.");
-                        clientsList_.remove(clientsList_.size() - 1); // remove the last added
                         return;
                     }
                     
@@ -570,7 +572,9 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 String response =  socket_.getRemoteSocketAddress().toString().substring(1) + " : " +
                                    socket_.getPort() + " - " + answer;
             
-            outputTextArea_.append(response + "\n");
+                outputTextArea_.append(response + "\n");
+                clientsList_.add(response);
+                                  
                 
             }
             

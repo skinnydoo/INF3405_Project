@@ -253,6 +253,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
