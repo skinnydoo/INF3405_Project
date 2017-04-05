@@ -81,11 +81,13 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
                         JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);                    
                     
                     portNumFTextField_.setValue("");
+                    portNumFTextField_.requestFocus();
                 }
             }catch (NumberFormatException ex) {
                 
                 JOptionPane.showMessageDialog(clientPanel_, "Port Number Should Be An Integer", "Error", JOptionPane.ERROR_MESSAGE);
                 portNumFTextField_.setValue("");
+                portNumFTextField_.requestFocus();
          
          }
         
@@ -266,6 +268,7 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         if (!ipAddressOk_) {
             
             JOptionPane.showMessageDialog(clientPanel_, "Wrong IP Format", "Error", JOptionPane.ERROR_MESSAGE);
+            ipFTextField_.requestFocus();
             //ipFTextField_.setValue("");
            
         }
