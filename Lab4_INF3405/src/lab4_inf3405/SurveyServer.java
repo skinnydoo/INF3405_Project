@@ -509,8 +509,8 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 FileWriter fileWriter = new FileWriter("clientsData.txt");
                 try (Writer out = new BufferedWriter(fileWriter)) {
                 
-                    for ( String data : clientsList_)
-                    out.write(data + "\n");
+                    for ( String data : clientsList_)                    
+                        out.write(data + "\n");
                 }
                 
             } catch (IOException e) {
