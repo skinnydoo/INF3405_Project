@@ -507,14 +507,13 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         try {
                 
                 FileWriter fileWriter = new FileWriter("clientsData.txt");
-                Writer out = new BufferedWriter(fileWriter);
+                try (Writer out = new BufferedWriter(fileWriter)) {
                 
-                for ( String data : clientsList_)
+                    for ( String data : clientsList_)
                     out.write(data + "\n");
+                }
                 
-                out.close();
-                
-            } catch (Exception e) {
+            } catch (IOException e) {
                 
                 JOptionPane.showMessageDialog(serverPanel_, "Error saving data...");
             }
