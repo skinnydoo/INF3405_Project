@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -40,8 +41,6 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private volatile boolean surveyIsOver_ = false;
     private SwingWorker<Void, Void> worker_;
     
-    private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
-   
     private final List<javax.swing.JFormattedTextField> fieldList_;
    
     /**
@@ -97,11 +96,13 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                         JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);                    
                     
                     portNumFTextField_.setValue("");
+                    portNumFTextField_.requestFocus();
                 }
             }catch (NumberFormatException ex) {
                 
                 JOptionPane.showMessageDialog(serverPanel_, "Port Number Should Be An Integer", "Error", JOptionPane.ERROR_MESSAGE);
                 portNumFTextField_.setValue("");
+                portNumFTextField_.requestFocus();
          
          }
     }
@@ -340,16 +341,18 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         validatePortNumber();
     }//GEN-LAST:event_portNumFTextField_FocusLost
 
+    
     private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
         
         if (ipFTextField_.getText().equals(""))
             return;
              
-        ipAddressOk_ = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
+        boolean ipAddressOk = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
         
-        if (!ipAddressOk_) {
+        if (!ipAddressOk) {
             
             JOptionPane.showMessageDialog(serverPanel_, "Wrong IP Format", "Error", JOptionPane.ERROR_MESSAGE);
+            ipFTextField_.requestFocus();
             //ipFTextField_.setValue("");
            
         }
@@ -388,10 +391,11 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
         
         int surveyPortNumber = Integer.parseInt(portNumFTextField_.getText().trim());
+        String ipAddress = ipFTextField_.getText().trim();
         int duration = Integer.parseInt(durationFTextField_.getText().trim());
         
         startTimer(duration);
-        startServer(surveyPortNumber);
+        startServer( ipAddress , surveyPortNumber);
         
         outputTextArea_.append("Waiting for clients to connect...\n");
         openSurveyButton_.setEnabled(false);
@@ -432,7 +436,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     /**
      * Start the Server on a different thread
      */
-    private void startServer(int portNumber ) {
+    private void startServer( String ipAddress, int portNumber ) {
         
         
         worker_ = new SwingWorker<Void, Void>() {
@@ -443,7 +447,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 clientsList_ =  new ArrayList<>();
                 try {                   
                    
-                   server_ = new ServerSocket(portNumber);                   
+                   server_ = new ServerSocket(portNumber, 50, InetAddress.getByName(ipAddress));
                                      
                    
                     while (!surveyIsOver_ && !isCancelled() ) {                        
@@ -504,9 +508,12 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     
     private void saveClientsData() {
         
+        if (clientsList_.isEmpty())
+            return;
+        
         try {
                 
-                FileWriter fileWriter = new FileWriter("clientsData.txt");
+                FileWriter fileWriter = new FileWriter("journal.txt");
                 try (Writer out = new BufferedWriter(fileWriter)) {
                 
                     for ( String data : clientsList_)                    
