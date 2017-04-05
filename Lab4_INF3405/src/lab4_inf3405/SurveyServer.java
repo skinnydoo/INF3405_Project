@@ -7,16 +7,18 @@ package lab4_inf3405;
 
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -36,6 +38,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     Timer timer_;
     int timerCounter_;
     private volatile boolean surveyIsOver_ = false;
+    private SwingWorker<Void, Void> worker_;
     
     private static boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
    
@@ -159,6 +162,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         outputTextArea_ = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setName("serverFrame"); // NOI18N
 
         serverPanel_.setBorder(javax.swing.BorderFactory.createTitledBorder("Server"));
         serverPanel_.setFocusCycleRoot(true);
@@ -359,14 +363,26 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
 
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
        
-       stopServer();
-       outputTextArea_.append("Server stopped...\n");  
-       
-       openSurveyButton_.setEnabled(true);
-       portNumFTextField_.setEditable(true);
-       ipFTextField_.setEditable(true);
-       questionTextArea_.setEditable(true);
-       durationFTextField_.setEditable(true);
+        if ( !surveyIsOver_ ) {
+           
+            stopServer();            
+            saveClientsData();
+            
+            //outputTextArea_.append("Server stopped...\n");  
+
+            /*openSurveyButton_.setEnabled(true);
+            portNumFTextField_.setEditable(true);
+            ipFTextField_.setEditable(true);
+            questionTextArea_.setEditable(true);
+            durationFTextField_.setEditable(true);*/
+            
+            return;
+        }
+        
+        outputTextArea_.setText("");
+        outputTextArea_.append("Server is not Running!\n");
+        outputTextArea_.append("\n\nNOTE: Server should be restarted completely if you wanna try again :)\n");
+        
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
@@ -419,7 +435,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     private void startServer(int portNumber ) {
         
         
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+        worker_ = new SwingWorker<Void, Void>() {
         
             @Override
             protected Void doInBackground() throws Exception {
@@ -430,7 +446,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                    server_ = new ServerSocket(portNumber);                   
                                      
                    
-                    while (!surveyIsOver_) {                        
+                    while (!surveyIsOver_ && !isCancelled() ) {                        
                         
                         Socket socket = server_.accept();
                         
@@ -457,11 +473,22 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
             protected void done() {
                
                 outputTextArea_.append("End of Survey.\n");
+                outputTextArea_.append("Server stopped.\n");
+                
+                outputTextArea_.append("\n\nNOTE: Server program should be restarted completely if you wanna try again :)\n");
+                
+                saveClientsData();
+               
+                /*openSurveyButton_.setEnabled(true);
+                portNumFTextField_.setEditable(true);
+                ipFTextField_.setEditable(true);
+                questionTextArea_.setEditable(true);
+                durationFTextField_.setEditable(true);*/
             }
             
         };
         
-        worker.execute();
+        worker_.execute();
     }
     
     /**
@@ -471,6 +498,27 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         
         surveyIsOver_ = true;
         timer_.cancel();
+        worker_.cancel(true);
+    }
+    
+    
+    private void saveClientsData() {
+        
+        try {
+                
+                FileWriter fileWriter = new FileWriter("clientsData.txt");
+                Writer out = new BufferedWriter(fileWriter);
+                
+                for ( String data : clientsList_)
+                    out.write(data + "\n");
+                
+                out.close();
+                
+            } catch (Exception e) {
+                
+                JOptionPane.showMessageDialog(serverPanel_, "Error saving data...");
+            }
+        
     }
 
     /**
@@ -569,8 +617,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                 
             } else {
                 
-                String response =  socket_.getRemoteSocketAddress().toString().substring(1) + " : " +
-                                   socket_.getPort() + " - " + answer;
+                String response =  socket_.getRemoteSocketAddress().toString().substring(1) + " - " + answer;
             
                 outputTextArea_.append(response + "\n");
                 clientsList_.add(response);
