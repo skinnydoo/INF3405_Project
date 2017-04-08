@@ -19,27 +19,22 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- *
- * @author Simel
+ * Client
+ * Implement InputValidator to validate input from the form
+ * @author Ralph Simelus
  */
-public class SurveyClient extends javax.swing.JFrame implements SurveyFormControlFormatter {
+public class SurveyClient extends javax.swing.JFrame implements InputValidator {
 
     private  Socket socket_;
     private  BufferedReader reader_;
     private  PrintWriter outWriter_;
     
-    
-    //private static boolean surveyIsOpen_ = false;
-    private boolean ipAddressOk_ = false;    //Valid IP Address format is 0-255.0-255.0-255.0-255
     private boolean isConnected_ = false;
-    
-    private static int clientPortNumber_;
-    private static String clientIPAddress_;
     
     private final List<javax.swing.JFormattedTextField> fieldList_;
     
     /**
-     * Creates new form Client
+     * Constructor to create a new client
      */
     public SurveyClient() {
         fieldList_ = new ArrayList<>();
@@ -70,6 +65,9 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
             field.getDocument().addDocumentListener(documentListener);
     }
 
+    /**
+     * Validate the port number entered by the user
+     */
     @Override
     public void validatePortNumber() {
         
@@ -93,6 +91,9 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         
     }
 
+    /**
+     * Check whether all the field has been filled
+     */
     @Override
     public void checkFieldsFull() {
         
@@ -258,14 +259,19 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    
+    /**
+     * On focus lost validate the IP address entered
+     * @param evt 
+     */
     private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
         
         if (ipFTextField_.getText().equals(""))
             return;
              
-        ipAddressOk_ = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
+        boolean ipAddressOk = validateIP(ipFTextField_.getText().trim()); // Valid IP Address format is 0-255.0-255.0-255.0-255
         
-        if (!ipAddressOk_) {
+        if (!ipAddressOk) {
             
             JOptionPane.showMessageDialog(clientPanel_, "Wrong IP Format", "Error", JOptionPane.ERROR_MESSAGE);
             ipFTextField_.requestFocus();
@@ -274,6 +280,10 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         }
     }//GEN-LAST:event_ipFTextField_FocusLost
 
+    /**
+     *  On focus lost validate the port number text field
+     * @param evt 
+     */
     private void portNumFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_portNumFTextField_FocusLost
         
         if( portNumFTextField_.getText().equals("") )
@@ -286,15 +296,15 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         
         if (!isConnected_) {
             
-            clientPortNumber_ = Integer.parseInt(portNumFTextField_.getText().trim());
-            clientIPAddress_ = ipFTextField_.getText().trim();
+            int clientPortNumber = Integer.parseInt(portNumFTextField_.getText().trim());
+            String clientIPAddress = ipFTextField_.getText().trim();
             ipFTextField_.setEditable(false);
             portNumFTextField_.setEditable(false);
             msgTextField_.setEnabled(true);
 
            try {
 
-               socket_ = new Socket(clientIPAddress_, clientPortNumber_);
+               socket_ = new Socket(clientIPAddress, clientPortNumber);
 
                    InputStreamReader instream = new InputStreamReader(socket_.getInputStream());
                    reader_ = new BufferedReader(instream);
@@ -340,6 +350,11 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         
     }//GEN-LAST:event_connectButton_ActionPerformed
 
+    
+     /**
+     * Sends response to server
+     * @param evt 
+     */
     private void sendButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButton_ActionPerformed
         
         // send answer
@@ -370,6 +385,10 @@ public class SurveyClient extends javax.swing.JFrame implements SurveyFormContro
         
     }//GEN-LAST:event_sendButton_ActionPerformed
 
+    /**
+     * Disconnect from the server
+     * @param evt 
+     */
     private void disconnectButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButton_ActionPerformed
         
         String disconnect = ipFTextField_.getText() + " has disconnected";

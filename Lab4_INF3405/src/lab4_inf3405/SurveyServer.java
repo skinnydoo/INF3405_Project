@@ -29,27 +29,29 @@ import javax.swing.event.DocumentListener;
 
 
 /**
- *
- * @author Simel
+ * Server that executes the Survey protocol
+ * Implement InputValidator to validate input from the form
+ * @author Ralph Simelus
  */
-public class SurveyServer extends javax.swing.JFrame implements SurveyFormControlFormatter {
+public class SurveyServer extends javax.swing.JFrame implements InputValidator {
 
     private ServerSocket server_;
     private List<String> clientsList_;
+    
     Timer timer_;
     int timerCounter_;
+    
     private volatile boolean surveyIsOver_ = false;
     private SwingWorker<Void, Void> worker_;
     
     private final List<javax.swing.JFormattedTextField> fieldList_;
    
     /**
-     * Creates new form Client
      * Constructor
      */
     public SurveyServer() {
-        fieldList_ = new ArrayList<>();
         initComponents();
+        fieldList_ = new ArrayList<>();
         
         fieldList_.add(ipFTextField_);
         fieldList_.add(portNumFTextField_);
@@ -83,7 +85,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     
     
     /**
-     * Validate port number input
+     * Validate the port number entered by the user
      */
     @Override
     public void validatePortNumber() {
@@ -330,7 +332,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     }// </editor-fold>//GEN-END:initComponents
 
     /**
-     * 
+     *  On focus lost validate the port number text field
      * @param evt 
      */
     private void portNumFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_portNumFTextField_FocusLost
@@ -342,6 +344,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     }//GEN-LAST:event_portNumFTextField_FocusLost
 
     
+    /**
+     * On focus lost validate the IP address entered
+     * @param evt 
+     */
     private void ipFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_ipFTextField_FocusLost
         
         if (ipFTextField_.getText().equals(""))
@@ -360,19 +366,26 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         
     }//GEN-LAST:event_ipFTextField_FocusLost
 
+    /**
+     * On focus lost validate the duration text field
+     * @param evt 
+     */
     private void durationFTextField_FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_durationFTextField_FocusLost
         // TODO add your handling code here:
     }//GEN-LAST:event_durationFTextField_FocusLost
 
+    /**
+     * When the user click the CLOSE SURVEY button, stop the server, then save the
+     * all the client's answers to file
+     * @param evt 
+     */
     private void closeSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeSurveyButton_ActionPerformed
        
         if ( !surveyIsOver_ ) {
            
             stopServer();            
-            saveClientsData();
+            saveClientsData();            
             
-            //outputTextArea_.append("Server stopped...\n");  
-
             /*openSurveyButton_.setEnabled(true);
             portNumFTextField_.setEditable(true);
             ipFTextField_.setEditable(true);
@@ -388,6 +401,11 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
         
     }//GEN-LAST:event_closeSurveyButton_ActionPerformed
 
+    /**
+     * When the user click the OPEN SURVEY button, get all the fields data, start the timer,
+     * then start the server
+     * @param evt 
+     */
     private void openSurveyButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openSurveyButton_ActionPerformed
         
         int surveyPortNumber = Integer.parseInt(portNumFTextField_.getText().trim());
@@ -452,7 +470,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
                    
                     while (!surveyIsOver_ && !isCancelled() ) {                        
                         
-                        Socket socket = server_.accept();
+                        Socket socket = server_.accept(); // listen for new clients connection
                         
                         if(surveyIsOver_)
                             return null;
@@ -496,7 +514,7 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     }
     
     /**
-     * Stop the server and stop the timer as well
+     * Stop the server and stop the timer
      */
     private void stopServer() {
         
@@ -506,6 +524,10 @@ public class SurveyServer extends javax.swing.JFrame implements SurveyFormContro
     }
     
     
+    /**
+     * Saves all the answers collected from the clients
+     * to a text file
+     */
     private void saveClientsData() {
         
         if (clientsList_.isEmpty())
